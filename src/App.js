@@ -1,9 +1,14 @@
 import React, { Component } from 'react';
 import NavBar from './components/navbar/navbar.js';
+import Dropzone from 'react-dropzone';
 import './App.scss';
 import firebase, { auth, provider } from './modules/firebase.js';
 
-const storage = firebase.storage();
+// reference to bucket
+const storageRef = firebase.storage().ref();
+// reference to bucketURL/images
+const imageRef = storageRef.child('images');
+
 class App extends Component {
 
   constructor() {
@@ -12,7 +17,9 @@ class App extends Component {
       currentItem: '',
       username: '',
       items: [],
-      user: null
+      user: null,
+      imageURL: null,
+      title: null
     }
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -35,6 +42,7 @@ class App extends Component {
         newState.push({
           id: item,
           title: items[item].title,
+          imageURL: items[item].imageURL,
           user: items[item].user
         });
       }
@@ -97,7 +105,8 @@ class App extends Component {
     */
     const item = {
       title: this.state.currentItem,
-      user: this.state.user.displayName || this.state.user.email
+      user: this.state.user.displayName || this.state.user.email,
+      imageURL: this.state.imageURL
     }
     /*
       this sends a copy of our object so that it can be stored in Firebase.
@@ -110,6 +119,32 @@ class App extends Component {
       currentItem: '',
       username: ''
     });
+  }
+
+  // functionality for react-dropzone to add images
+  onImageDrop(files) {
+    this.setState({
+      uploadedFile: files[0]
+    });
+    console.log("on image drop", files[0]);
+    this.handleImageUpload(files[0]);
+  }
+
+  // functionality for react-dropzone to upload images to firebase storage
+  handleImageUpload(file) {
+    // grab reference to the image name -- "images/file-name.png"
+    const fileName = imageRef.child(file.name);
+    // send image to db
+    fileName.put(file).then(function(snapshot) {
+      console.log('Successfully uploaded image 👍');
+    }).then(() => {
+      fileName.getDownloadURL().then(url => {
+        this.setState({
+          imageURL: url
+        });
+      })
+    })
+
   }
 
   render() {
@@ -136,7 +171,34 @@ class App extends Component {
               <div className='container'>
                 <section className='add-item'>
                   <form onSubmit={this.handleSubmit}>
-                  
+                    <div id="dropzone-div">
+                      <Dropzone
+                        onDrop={this.onImageDrop.bind(this)}
+                        multiple={false}>
+                        {({ getRootProps, getInputProps }) => {
+                          return (
+                            <div
+                              {...getRootProps()}
+                            >
+                              <input {...getInputProps()} />
+                              {
+                                <p>Try dropping some files here, or click to select files to upload.</p>
+                              }
+                            </div>
+                          )
+                        }}
+                      </Dropzone>
+                      <div>
+                        <div className="FileUpload" style={{ width: "100%" }}></div>
+                        <div>
+                          {this.state.imageURL === '' ? null :
+                            <div>
+                              <p>{this.state.title}</p>
+                              <img className="preview-img" alt={this.state.title} style={{ width: "100%" }} src={this.state.imageURL} />
+                            </div>}
+                        </div>
+                      </div>
+                    </div>
                     <input type="text" name="username" placeholder="What's your name?" onChange={this.handleChange} value={this.state.user.displayName || this.state.user.email} />
                     <input type="text" name="currentItem" placeholder="What are you bringing?" onChange={this.handleChange} value={this.state.currentItem} />
                     <button>Add Item</button>
@@ -156,6 +218,7 @@ class App extends Component {
                   return (
                     <li key={item.id}>
                       <h3>{item.title}</h3>
+                      <img src={item.imageURL} alt={item.title}/>
                       <p>brought by: {item.user}
                         {item.user === this.state.user.displayName || item.user === this.state.user.email ?
                           <button onClick={() => this.removeItem(item.id)}>Remove Item</button> : null}
