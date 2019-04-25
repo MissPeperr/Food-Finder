@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
+import firebase, { auth, provider } from './modules/firebase.js';
 import NavBar from './components/navbar/navbar.js';
 import Dropzone from 'react-dropzone';
+import 'semantic-ui-css/semantic.min.css'
+import { Button, Icon } from 'semantic-ui-react';
 import './App.scss';
-import firebase, { auth, provider } from './modules/firebase.js';
 
 // reference to bucket
 const storageRef = firebase.storage().ref();
 // reference to bucketURL/images
 const imageRef = storageRef.child('images');
+
 
 class App extends Component {
 
@@ -76,12 +79,6 @@ class App extends Component {
       });
   }
 
-  handleChange(e) {
-    this.setState({
-      [e.target.name]: e.target.value
-    });
-  }
-
   logout() {
     auth.signOut()
       .then(() => {
@@ -90,6 +87,13 @@ class App extends Component {
         });
       });
   }
+
+  handleChange(e) {
+    this.setState({
+      [e.target.name]: e.target.value
+    });
+  }
+
 
   handleSubmit(e) {
     /*
@@ -117,7 +121,8 @@ class App extends Component {
     */
     this.setState({
       currentItem: '',
-      username: ''
+      username: '',
+      imageURL: null
     });
   }
 
@@ -126,7 +131,6 @@ class App extends Component {
     this.setState({
       uploadedFile: files[0]
     });
-    console.log("on image drop", files[0]);
     this.handleImageUpload(files[0]);
   }
 
@@ -135,7 +139,7 @@ class App extends Component {
     // grab reference to the image name -- "images/file-name.png"
     const fileName = imageRef.child(file.name);
     // send image to db
-    fileName.put(file).then(function(snapshot) {
+    fileName.put(file).then(function (snapshot) {
       console.log('Successfully uploaded image 👍');
     }).then(() => {
       fileName.getDownloadURL().then(url => {
@@ -150,23 +154,14 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <NavBar />
-        <header className="App-header">
-          <div className="wrapper">
-            <h1>Fun Food Friends</h1>
-            {/* Add this to navbar */}
-            {this.state.user ?
-              <button onClick={this.logout}>Log Out</button>
-              :
-              <button onClick={this.login}>Log In</button>
-            }
-          </div>
-        </header>
+        <NavBar
+          user={this.state.user}
+        />
         <div className="container">
           {this.state.user ?
             <div>
               <div className='user-profile'>
-                <img src={this.state.user.photoURL} alt={this.state.user.displayName} />
+                <img src={this.state.user.photoURL} alt={this.state.user.displayName} style={{width: "10%", height: "auto"}}/>
               </div>
               <div className='container'>
                 <section className='add-item'>
@@ -177,24 +172,27 @@ class App extends Component {
                         multiple={false}>
                         {({ getRootProps, getInputProps }) => {
                           return (
-                            <div
+                            <div id="image-drop-div"
                               {...getRootProps()}
                             >
                               <input {...getInputProps()} />
                               {
-                                <p>Try dropping some files here, or click to select files to upload.</p>
+                                <Button
+                                content='Upload Image'
+                                icon='upload'
+                                labelPosition='right' />
                               }
                             </div>
                           )
                         }}
                       </Dropzone>
                       <div>
-                        <div className="FileUpload" style={{ width: "100%" }}></div>
+                        <div className="FileUpload" style={{ width: "10%" }}></div>
                         <div>
                           {this.state.imageURL === '' ? null :
                             <div>
                               <p>{this.state.title}</p>
-                              <img className="preview-img" alt={this.state.title} style={{ width: "100%" }} src={this.state.imageURL} />
+                              <img className="preview-img" alt={this.state.title} src={this.state.imageURL} />
                             </div>}
                         </div>
                       </div>
@@ -216,14 +214,24 @@ class App extends Component {
               <ul>
                 {this.state.items.map((item) => {
                   return (
-                    <li key={item.id}>
+                    <div key={item.id}>
                       <h3>{item.title}</h3>
-                      <img src={item.imageURL} alt={item.title}/>
+                      <img src={item.imageURL} alt={item.title} style={{width:"25%", height:"auto"}} />
                       <p>brought by: {item.user}
                         {item.user === this.state.user.displayName || item.user === this.state.user.email ?
-                          <button onClick={() => this.removeItem(item.id)}>Remove Item</button> : null}
+                          <Button
+                          color="red"
+                          style={{marginLeft: "1rem"}}
+                          animated="fade"
+                          onClick={() => this.removeItem(item.id)}>
+                          <Button.Content visible>Remove Item</Button.Content>
+                          <Button.Content hidden>
+                            <Icon name="remove" />
+                          </Button.Content>
+                          </Button>
+                          : null}
                       </p>
-                    </li>
+                    </div>
                   )
                 })}
               </ul>

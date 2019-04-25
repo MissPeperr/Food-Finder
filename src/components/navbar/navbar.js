@@ -1,47 +1,40 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
+import React, { Component } from 'react'
+import { Menu } from 'semantic-ui-react'
 
-const styles = {
-  root: {
-    flexGrow: 1,
-  },
-  grow: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginLeft: -12,
-    marginRight: 20,
-  },
-};
+export default class NavBar extends Component {
+  state = {}
 
-function ButtonAppBar(props) {
-  const { classes } = props;
-  return (
-    <div className={classes.root}>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton className={classes.menuButton} color="inherit" aria-label="Menu">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" color="inherit" className={classes.grow}>
-            Where can I eat?
-          </Typography>
-          <Button color="inherit">Login</Button>
-        </Toolbar>
-      </AppBar>
-    </div>
-  );
+  handleItemClick = (e, { name }) => this.setState({ activeItem: name })
+
+  render() {
+    const { activeItem } = this.state
+
+    return (
+      <Menu>
+        <Menu.Item
+          name='Meals'
+          active={activeItem === 'Meals'}
+          onClick={this.handleItemClick}
+        >
+          Editorials
+        </Menu.Item>
+
+        {this.props.user ?
+          <Menu.Item
+            name='Log Out'
+            active={activeItem === 'Log Out'}
+            onClick={this.handleItemClick}>
+            Log Out
+          </Menu.Item>
+          :
+          <Menu.Item
+            name="Log In"
+            active={activeItem === "Log In"}
+            onClick={this.handleItemClick}>
+            Log In
+          </Menu.Item>
+      }
+      </Menu>
+    )
+  }
 }
-
-ButtonAppBar.propTypes = {
-  classes: PropTypes.object.isRequired,
-};
-
-export default withStyles(styles)(ButtonAppBar);
