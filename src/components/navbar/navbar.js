@@ -16,7 +16,7 @@ export default class NavBar extends Component {
           active={activeItem === 'Meals'}
           onClick={this.handleItemClick}
         >
-          Editorials
+          Meals
         </Menu.Item>
 
         {this.props.user ?

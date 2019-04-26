@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import firebase, { auth, provider } from './modules/firebase.js';
+import firebase, { auth, provider } from './data/firebase.js';
 import NavBar from './components/navbar/navbar.js';
 import Dropzone from 'react-dropzone';
 import 'semantic-ui-css/semantic.min.css'
