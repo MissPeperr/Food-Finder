@@ -12,7 +12,7 @@ export default class mealsList extends Component {
     render() {
         return (
             <div>
-                All meals listed here 👍
+                All meals listed here <span role="img" aria-label="thumbs up emoji">👍</span>
             </div>
         );
     }
